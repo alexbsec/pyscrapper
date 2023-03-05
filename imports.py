@@ -1,4 +1,3 @@
-import urllib
 import requests
 from requests_html import HTML, HTMLSession
 from simple_chalk import chalk
@@ -40,7 +39,6 @@ def googleScrapper(
     if brute_search:
         query = '"' + query + '"'
 
-    query = urllib.parse.quote_plus(query)
     if int(pages) == 1:
         URL = f"https://google.com/search?q={query}"
         res = get_source(URL)
