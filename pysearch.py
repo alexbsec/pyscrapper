@@ -1,99 +1,98 @@
-import urllib
-import requests
-from requests_html import HTML, HTMLSession
+import argparse
+from imports import googleScrapper
 from simple_chalk import chalk
-import time
 
+def main():
+    # Define the command-line arguments
+    parser = argparse.ArgumentParser(description="Scrape Google search results.")
+    parser.add_argument("query", help="the search query")
+    parser.add_argument("-b", "--brute-search", action="store_true", help="perform a brute-force search")
+    parser.add_argument("-v", "--verbose", action="store_true", help="verbose mode")
+    parser.add_argument("-f", "--filetype", help="search for a specific file type")
+    parser.add_argument("-s", "--site", help="search for results from a specific website")
+    parser.add_argument("-d", "--delay", help="delay between requests")
+    parser.add_argument("--in-url", help="search for results containing a specific content in URL")
+    parser.add_argument("--in-title", help="search for results containing a specific title")
+    parser.add_argument("--in-text", help="search for results containing a specific text")
+    parser.add_argument("-n", "--num-pages", help="Number of pages to scrap from", default=1)
+    parser.add_argument("-V", "--version", action="version", version="pysearch 1.0.0")
+    parser.add_argument("-H", "--help-flags", action="store_true", help="show all available flags")
+    args = parser.parse_args()
+    intro = chalk.yellow('''
+ /$$$$$$$                                                              /$$                          
+| $$__  $$                                                            | $$                          
+| $$  \ $$ /$$   /$$  /$$$$$$$  /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$$| $$$$$$$                     
+| $$$$$$$/| $$  | $$ /$$_____/ /$$__  $$ |____  $$ /$$__  $$ /$$_____/| $$__  $$                    
+| $$____/ | $$  | $$|  $$$$$$ | $$$$$$$$  /$$$$$$$| $$  \__/| $$      | $$  \ $$                    
+| $$      | $$  | $$ \____  $$| $$_____/ /$$__  $$| $$      | $$      | $$  | $$                    
+| $$      |  $$$$$$$ /$$$$$$$/|  $$$$$$$|  $$$$$$$| $$      |  $$$$$$$| $$  | $$                    
+|__/       \____  $$|_______/  \_______/ \_______/|__/       \_______/|__/  |__/                    
+           /$$  | $$                                                                                
+          |  $$$$$$/                                                                                
+           \______/                                                                                 
+  /$$$$$$                                /$$                 /$$   /$$                     /$$      
+ /$$__  $$                              | $$                | $$  | $$                    | $$      
+| $$  \__/  /$$$$$$   /$$$$$$   /$$$$$$ | $$  /$$$$$$       | $$  | $$  /$$$$$$   /$$$$$$$| $$   /$$
+| $$ /$$$$ /$$__  $$ /$$__  $$ /$$__  $$| $$ /$$__  $$      | $$$$$$$$ |____  $$ /$$_____/| $$  /$$/
+| $$|_  $$| $$  \ $$| $$  \ $$| $$  \ $$| $$| $$$$$$$$      | $$__  $$  /$$$$$$$| $$      | $$$$$$/ 
+| $$  \ $$| $$  | $$| $$  | $$| $$  | $$| $$| $$_____/      | $$  | $$ /$$__  $$| $$      | $$_  $$ 
+|  $$$$$$/|  $$$$$$/|  $$$$$$/|  $$$$$$$| $$|  $$$$$$$      | $$  | $$|  $$$$$$$|  $$$$$$$| $$ \  $$
+ \______/  \______/  \______/  \____  $$|__/ \_______/      |__/  |__/ \_______/ \_______/|__/  \__/
+                               /$$  \ $$                                                            
+                              |  $$$$$$/                                                            
+                               \______/                                                             
+ /$$    /$$   /$$        /$$$$$$      /$$$$$$                                                       
+| $$   | $$ /$$$$       /$$$_  $$    /$$$_  $$                                                      
+| $$   | $$|_  $$      | $$$$\ $$   | $$$$\ $$                                                      
+|  $$ / $$/  | $$      | $$ $$ $$   | $$ $$ $$                                                      
+ \  $$ $$/   | $$      | $$\ $$$$   | $$\ $$$$                                                      
+  \  $$$/    | $$      | $$ \ $$$   | $$ \ $$$                                                      
+   \  $/    /$$$$$$ /$$|  $$$$$$//$$|  $$$$$$/                                                      
+    \_/    |______/|__/ \______/|__/ \______/                                                       
+                                                                                                                                                                                                                                                                                                                                                                                     
+    ''')
 
-def googleScrapper(
-    query, 
-    brute_search=True, 
-    filetype=None, 
-    url=None,
-    in_url=None,
-    in_title=None,
-    pages=1,
-    verbose=False,
-    delay=5):
+    # Check if the user requested help with the flags
+    if args.help_flags:
+        print(intro)
+        print("\nUSAGE: pysearch [OPTIONS] QUERY\n")
+        print("Search Google for QUERY.\n")
+        print("OPTIONS:\n")
+        print("-h, --help           Show this help message and exit.")
+        print("-b, --brute-search   Perform a brute-force search.")
+        print("-v, -verbose         Verbose mode.")
+        print("-f, --filetype FILETYPE")
+        print("                     Search for a specific file type.")
+        print("-n, --num-pages      Select the number of pages to scrap from.")
+        print("                     Default is 1.")
+        print("-s, --site SITE      Search for results from a specific URL.")
+        print("-d", "--delay        Delay between search requests.")
+        print("                     Default is 5 s.")
+        print("--in-url IN_URL      Search for results containing a specific URL.")
+        print("--in-title IN_TITLE  Search for results containing a specific title.")
+        print("--in-text IN_TEXT    Search for results containing a specific text.")
+        print("-V, --version        Show program's version number and exit.\n")
+        return 0
 
-    google_domains = ('https://www.google.', 
-                      'https://google.', 
-                      'https://webcache.googleusercontent.', 
-                      'http://webcache.googleusercontent.', 
-                      'https://policies.google.',
-                      'https://support.google.',
-                      'https://maps.google.')
+    # Print the program intro
+
+    print(intro)
+    print(chalk.bold("Credits:") + "                -       "+chalk.yellow.bold("A. Buschinelli (Anonymma)"))
+    print(chalk.bold("GitHub") + "                  -       "+chalk.red.bold("http://github.com/buschinelli-joao"))
+    print(chalk.bold("[*] ") + chalk.green.bold("Searching..."))
+    results = googleScrapper(args.query, args.brute_search, args.filetype, args.site, args.in_url, args.in_title, args.num_pages, verbose=args.verbose, delay=args.delay)
+    # Print the search results
+
+    if results == []:
+        print(chalk.red.bold("[!] ") + chalk.red("No results found for search. Consider changing delay between requests."))
+    for item in results:
+        print(chalk.bold("Title: ") + chalk.blue(item["title"]))
+        print(chalk.bold("Link: ") + chalk.red(item['link']))
+        print(chalk.bold("Snippet: ") + chalk.green(item["text"] + "\n"))
 
     
-    if filetype != None:
-        query += f" filetype:{filetype}"
-    
-    if url != None:
-        query += f" url:{url}"
 
-    if in_url != None:
-        query += f" inurl:{in_url}"
+    return 0
 
-    if in_title != None:
-        query += f" intitle:{in_title}"
-
-    if brute_search:
-        query = '"' + query + '"'
-
-    query = urllib.parse.quote_plus(query)
-    if int(pages) == 1:
-        URL = f"https://google.com/search?q={query}"
-        res = get_source(URL)
-        results = parse_results(res, verbose=verbose)
-    elif int(pages) > 1:
-        URL = f"https://google.com/search?q={query}&start="
-        results = []
-        for i in range(1, int(pages)+1):
-            tmp_URL = URL + str(i) + '0'
-            tmp_res = get_source(tmp_URL)
-            tmp_results = parse_results(tmp_res, verbose=verbose)
-            results = results + tmp_results
-            time.sleep(delay)
-    else:
-        print("[!] Number of pages cannot be less than 1!")
-        exit(1)
-
-    return results
-
-def get_source(url):
-    try:
-        session = HTMLSession()
-        response = session.get(url)
-        return response
-    except requests.exceptions.RequestException as e:
-        print(f"Exception caught: {e}")
-
-
-def parse_results(response, verbose=False):
-    css_identifier_result = ".tF2Cxc"
-    css_identifier_title = "h3"
-    css_identifier_link = ".yuRUbf a"
-    css_identifier_text = ".VwiC3b"
-
-    results = response.html.find(css_identifier_result)
-    output = []
-
-    for result in results:
-        try:
-            item = {
-                    "title": result.find(css_identifier_title, first=True).text,
-                    "link": result.find(css_identifier_link, first=True).attrs['href'],
-                    "text": result.find(css_identifier_text, first=True).text
-                }
-            if verbose:
-                print(chalk.green.bold("[+] Found link: ") + chalk.red(item["link"]))
-        except:
-            pass
-            
-
-        output.append(item)
-
-    return output
-
-
-
+if __name__ == '__main__':
+    main()
