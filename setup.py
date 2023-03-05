@@ -13,7 +13,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pysearch = pysearch.pysearch:main'
+            'pysearch = pysearch:main'
         ]
     }
 )
