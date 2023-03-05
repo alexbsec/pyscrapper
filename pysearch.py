@@ -5,7 +5,7 @@ from simple_chalk import chalk
 def main():
     # Define the command-line arguments
     parser = argparse.ArgumentParser(description="Scrape Google search results.")
-    parser.add_argument("query", help="the search query")
+    parser.add_argument("query", help="the search query", nargs="+")
     parser.add_argument("-b", "--brute-search", action="store_true", help="perform a brute-force search")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose mode")
     parser.add_argument("-f", "--filetype", help="search for a specific file type")
