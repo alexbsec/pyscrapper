@@ -13,7 +13,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pysearch = pyscrapper.googlesearch:main'
+            'pysearch = pysearch.pysearch:main'
         ]
     }
 )
